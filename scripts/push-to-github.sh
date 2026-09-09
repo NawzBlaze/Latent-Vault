@@ -40,14 +40,21 @@ fi
 echo "  authenticated as: $LOGIN"
 
 echo "== ensure repo $LOGIN/$REPO ($VIS) =="
-code="$(curl -sS --max-time 30 -o /tmp/gh-create.json -w '%{http_code}' \
-  "${auth[@]}" -X POST "$API/user/repos" \
-  -d "{\"name\":\"$REPO\",\"private\":$([ "$VIS" = public ] && echo false || echo true),\"auto_init\":false}")"
-case "$code" in
-  201) echo "  created." ;;
-  422) echo "  already exists — reusing." ;;
-  *)   echo "  create returned $code:"; sed -n 's/.*"message": *"\([^"]*\)".*/   \1/p' /tmp/gh-create.json; exit 1 ;;
-esac
+# Prefer detection over creation: if the repo already exists we never need the
+# token to carry Administration:write, only Contents:write for the push below.
+exists="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' "${auth[@]}" "$API/repos/$LOGIN/$REPO")"
+if [[ "$exists" == "200" ]]; then
+  echo "  already exists — reusing."
+else
+  code="$(curl -sS --max-time 30 -o /tmp/gh-create.json -w '%{http_code}' \
+    "${auth[@]}" -X POST "$API/user/repos" \
+    -d "{\"name\":\"$REPO\",\"private\":$([ "$VIS" = public ] && echo false || echo true),\"auto_init\":false}")"
+  case "$code" in
+    201) echo "  created." ;;
+    422) echo "  already exists — reusing." ;;
+    *)   echo "  create returned $code:"; sed -n 's/.*"message": *"\([^"]*\)".*/   \1/p' /tmp/gh-create.json; exit 1 ;;
+  esac
+fi
 
 ORIGIN="https://github.com/$LOGIN/$REPO.git"
 
@@ -59,7 +66,9 @@ else
 fi
 
 echo "== push (token used once, not persisted) =="
-git push "https://x-access-token:$TOKEN@github.com/$LOGIN/$REPO.git" "HEAD:refs/heads/main"
+# For a PAT the HTTPS username must be the account (or any real user), NOT the
+# GitHub-App-only "x-access-token" — that form is rejected with 403 for PATs.
+git push "https://$LOGIN:$TOKEN@github.com/$LOGIN/$REPO.git" "HEAD:refs/heads/main"
 git branch --set-upstream-to=origin/main main 2>/dev/null || true
 
 echo
