@@ -78,7 +78,7 @@ export default function WatchView({ item, prevNext, related }: Props) {
             onTheaterChange={setTheater}
           />
         ) : (
-          <div className="unavailable-panel" role="status" aria-label="Episode not available">
+          <div className="unavailable-panel glass-surface" role="status" aria-label="Episode not available">
             <div className="unavailable-kicker">{label}</div>
             <h2 className="unavailable-title">Not currently available</h2>
             <p className="unavailable-copy">
@@ -86,6 +86,28 @@ export default function WatchView({ item, prevNext, related }: Props) {
               archive’s sources yet — so there is nothing to play. The moment a verified
               copy appears, it will stream here.
             </p>
+            {item.officialUrl ? (
+              <div className="unavailable-official">
+                <a
+                  className="btn btn-gold btn-glow"
+                  href={item.officialUrl.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                    <path
+                      fill="currentColor"
+                      d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4L15.8 12l-6.2 3.6Z"
+                    />
+                  </svg>
+                  {item.officialUrl.label}
+                </a>
+                <p className="unavailable-note">
+                  Opens the show’s own channel in a new tab. The archive does not stream,
+                  embed or proxy this video.
+                </p>
+              </div>
+            ) : null}
           </div>
         )}
 

@@ -53,6 +53,11 @@ export const CATALOGUE: ContentItem[] = [
     availability: 'unavailable',
     resolution: null,
     published: true,
+    // Outbound link only — the show's own upload. Never a playback source.
+    officialUrl: {
+      url: 'https://www.youtube.com/watch?v=eHTXQW58WhA',
+      label: 'Watch on YouTube — official Samay Raina upload',
+    },
   }),
 
   item({
@@ -79,6 +84,10 @@ export const CATALOGUE: ContentItem[] = [
     availability: 'unavailable',
     resolution: null,
     published: true,
+    officialUrl: {
+      url: 'https://www.youtube.com/watch?v=c35fpGWqXnk',
+      label: 'Watch on YouTube — official Samay Raina upload',
+    },
   }),
 
   item({

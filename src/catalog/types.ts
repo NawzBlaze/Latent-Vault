@@ -66,6 +66,14 @@ export interface ContentItem {
   availability: Availability;
   resolution: ResolutionInfo | null;
   published: boolean;
+  /**
+   * Official external upload (e.g. the show's own YouTube channel), shown as an
+   * outbound link ONLY. This is never a playback source: no bytes are fetched,
+   * embedded, proxied or redirected through it, and /api/play ignores it
+   * entirely. Present when the archive has no media but an official copy
+   * exists elsewhere.
+   */
+  officialUrl?: { url: string; label: string } | null;
 }
 
 export interface PersonRef {
