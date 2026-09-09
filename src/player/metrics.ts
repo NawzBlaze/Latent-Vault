@@ -10,8 +10,34 @@ export interface SeekSample {
   latencyMs: number;
 }
 
+export interface NetworkBreakdown {
+  /** mount -> authorization endpoint answered (307 issued). */
+  authMs: number | null;
+  /** authorization redirect follow (307 -> source). */
+  redirectMs: number | null;
+  /** source time to first byte, after the redirect completed. */
+  sourceTtfbMs: number | null;
+  /** source request total (startTime -> responseEnd). */
+  sourceTotalMs: number | null;
+  /** Host the media actually came from (proves no proxy). */
+  mediaHost: string | null;
+  /** HTTP status observed for the media request, when the browser reports it. */
+  mediaStatus: number | null;
+}
+
+const EMPTY_NET: NetworkBreakdown = {
+  authMs: null,
+  redirectMs: null,
+  sourceTtfbMs: null,
+  sourceTotalMs: null,
+  mediaHost: null,
+  mediaStatus: null,
+};
+
 export interface PlaybackReport {
   contentId: string;
+  /** Measured network breakdown from the Resource Timing API. */
+  net: NetworkBreakdown;
   authMs: number | null;
   metadataMs: number | null;
   firstFrameMs: number | null;
@@ -23,6 +49,8 @@ export interface PlaybackReport {
 
 export class PlaybackMetrics {
   private t0: number;
+  /** Real per-phase network timings, filled from Resource Timing entries. */
+  net: NetworkBreakdown = { ...EMPTY_NET };
   private authMs: number | null = null;
   private metadataMs: number | null = null;
   private firstFrameMs: number | null = null;
@@ -65,9 +93,38 @@ export class PlaybackMetrics {
     this.completed = true;
   }
 
+  /**
+   * Read the real network breakdown for this media load. The <video> element
+   * follows the 307 itself, so its single Resource Timing entry carries the
+   * authorization time (redirectEnd-redirectStart), the redirect follow, and
+   * the source's time to first byte.
+   */
+  recordNetwork(): void {
+    if (typeof performance === 'undefined' || typeof performance.getEntriesByType !== 'function') return;
+    const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+    const media = entries
+      .slice()
+      .reverse()
+      .find((e) => /\/api\/play\//.test(e.name) || /index\.csbots\.live|okcdn/.test(e.name));
+    if (!media) return;
+    const r = (n: number) => (Number.isFinite(n) && n > 0 ? Math.round(n) : null);
+    this.net = {
+      authMs:
+        r(media.redirectEnd > 0 ? media.redirectEnd - this.t0 : media.responseStart - this.t0),
+      redirectMs: r(media.redirectEnd - media.redirectStart),
+      sourceTtfbMs: r(
+        media.responseStart - (media.redirectEnd > 0 ? media.redirectEnd : media.startTime),
+      ),
+      sourceTotalMs: r(media.responseEnd - media.startTime),
+      mediaHost: (() => { try { return new URL(media.name).host; } catch { return null; } })(),
+      mediaStatus: (media as PerformanceResourceTiming & { responseStatus?: number }).responseStatus ?? null,
+    };
+  }
+
   report(): PlaybackReport {
     return {
       contentId: this.contentId,
+      net: this.net,
       authMs: this.authMs === null ? null : Math.round(this.authMs),
       metadataMs: this.metadataMs === null ? null : Math.round(this.metadataMs),
       firstFrameMs: this.firstFrameMs === null ? null : Math.round(this.firstFrameMs),

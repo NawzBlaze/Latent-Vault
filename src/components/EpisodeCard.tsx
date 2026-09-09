@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { cancelPrefetch, prefetchPlayback } from '@/lib/prefetch';
 import type { ContentItem } from '@/catalog/types';
 import { isPlayable } from '@/catalog/types';
 import { formatRuntime, seasonEpisodeLabel } from '@/lib/format';
@@ -13,8 +16,18 @@ interface Props {
 export default function EpisodeCard({ item, progress, eager = false }: Props) {
   const people = [...item.guests, ...item.panelists, ...item.participants, ...item.hosts, ...item.judges];
   const playable = isPlayable(item);
+  // Only playable items have anything to resolve; unavailable ones have no media.
+  const warm = () => { if (playable) prefetchPlayback(item.id); };
   return (
-    <Link href={`/watch/${item.slug}`} className={`ep-card${playable ? '' : ' is-unavailable'}`}>
+    <Link
+      href={`/watch/${item.slug}`}
+      className={`ep-card${playable ? '' : ' is-unavailable'}`}
+      onPointerEnter={warm}
+      onPointerLeave={() => cancelPrefetch(item.id)}
+      onFocus={warm}
+      onTouchStart={warm}
+      onMouseDown={warm}
+    >
       <span className="ep-card-art">
         {/* eslint-disable-next-line @next/next/no-img-element -- local SVG key art, no optimisation gain */}
         <img

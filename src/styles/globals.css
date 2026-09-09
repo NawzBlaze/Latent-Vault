@@ -21,9 +21,15 @@
   --gold-dim: #8a6a2a;
   --gold-glow: rgba(217, 164, 65, 0.42);
 
-  /* --- lines + glass --- */
-  --line: rgba(217, 164, 65, 0.18);
-  --line-strong: rgba(245, 205, 123, 0.42);
+  /* --- lines + glass ---
+     Borders are neutral warm grey by default. Gold is reserved for accent
+     (active nav, primary action, focus), so it stops reading as decoration
+     stamped on every surface. */
+  --line: rgba(244, 236, 219, 0.10);
+  --line-strong: rgba(244, 236, 219, 0.22);
+  --line-gold: rgba(245, 205, 123, 0.42);
+  --surface: #0d0b12;
+  --surface-2: #131119;
   --glass: rgba(255, 255, 255, 0.045);
   --glass-2: rgba(255, 255, 255, 0.075);
   --glass-hi: rgba(255, 255, 255, 0.14);
@@ -390,7 +396,7 @@ a:hover { color: var(--gold); }
   width: 100%;
   max-width: var(--wrap);
   margin-inline: auto;
-  padding: clamp(32px, 6vw, 84px) clamp(16px, 4vw, 40px) clamp(28px, 5vw, 64px);
+  padding: clamp(22px, 3.4vw, 44px) clamp(16px, 4vw, 40px) clamp(18px, 3vw, 34px);
 }
 
 .hero-copy { min-width: 0; }
@@ -589,7 +595,7 @@ a:hover { color: var(--gold); }
 /* ============================================================
    Sections
    ============================================================ */
-.section { padding: clamp(26px, 4.4vw, 54px) 0; }
+.section { padding: clamp(18px, 2.8vw, 34px) 0; }
 
 .section-head {
   display: flex;
@@ -644,30 +650,29 @@ a:hover { color: var(--gold); }
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   overflow: hidden;
   color: var(--paper);
-  background: linear-gradient(165deg, var(--glass-2), var(--glass));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: var(--sh-2);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease), border-color 0.45s var(--ease);
-  will-change: transform;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  transition: transform 0.32s var(--ease), box-shadow 0.32s var(--ease), border-color 0.32s var(--ease),
+    background 0.32s var(--ease);
 }
 
 .ep-card:hover,
 .ep-card:focus-visible {
-  transform: translateY(-8px) scale(1.015);
+  transform: translateY(-4px);
   border-color: var(--line-strong);
-  box-shadow: var(--sh-3), 0 26px 70px -24px var(--gold-glow);
+  background: var(--surface-2);
+  box-shadow: var(--sh-2);
   color: var(--paper);
 }
 
 .ep-card-art {
   position: relative;
   display: block;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--ink-3);
 }
@@ -920,13 +925,13 @@ a:hover { color: var(--gold); }
    ============================================================ */
 .footer {
   position: relative;
-  margin-top: clamp(38px, 7vw, 84px);
-  padding: clamp(30px, 5vw, 56px) 0 calc(26px + var(--safe-b));
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  background: linear-gradient(180deg, transparent, rgba(217, 164, 65, 0.05));
+  margin-top: clamp(22px, 3.5vw, 40px);
+  padding: clamp(20px, 3vw, 30px) 0 calc(18px + var(--safe-b));
+  border-top: 1px solid var(--line);
+  background: var(--ink-2);
 }
 
-.footer-inner { display: grid; gap: 18px; }
+.footer-inner { display: grid; gap: 10px; }
 .footer-brand { display: flex; align-items: center; gap: 11px; }
 .footer-name { font-family: var(--font-serif); font-size: 17px; font-weight: 700; letter-spacing: 0.1em; color: var(--gold-bright); }
 .footer-desc { color: var(--paper-dim); font-size: 14px; max-width: 60ch; margin: 0; }

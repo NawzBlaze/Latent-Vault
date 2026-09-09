@@ -46,6 +46,31 @@ interface LatentPlayerProps {
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 const CONTROLS_HIDE_MS = 2800;
 const STALL_TIMEOUT_MS = 20000;
+
+/** Viewer preferences that should survive navigation and reloads. */
+const PREF_KEY = 'lv.player.prefs';
+
+interface PlayerPrefs { volume: number; rate: number }
+
+export function readPrefs(): PlayerPrefs | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(PREF_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Partial<PlayerPrefs>;
+    return {
+      volume: typeof p.volume === 'number' && p.volume >= 0 && p.volume <= 1 ? p.volume : 1,
+      rate: typeof p.rate === 'number' && p.rate >= 0.25 && p.rate <= 3 ? p.rate : 1,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function writePrefs(p: PlayerPrefs): void {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch { /* private mode */ }
+}
 const LOAD_TIMEOUT_MS = 25000;
 const MAX_AUTO_RETRIES = 1;
 const VOLUME_KEY = 'igl_volume';
@@ -93,6 +118,10 @@ export default function LatentPlayer({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resumeToast, setResumeToast] = useState<string | null>(null);
   const [seekFlash, setSeekFlash] = useState<{ side: 'left' | 'right'; n: number } | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const [boosting, setBoosting] = useState(false);
+  const boostTimer = useRef<number | null>(null);
+  const boostPrevRate = useRef<number | null>(null);
   const [dragRatio, setDragRatio] = useState<number | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [report, setReport] = useState<PlaybackReport | null>(null);
@@ -158,41 +187,21 @@ export default function LatentPlayer({
 
   /* ---------------- source authorisation (tiny preflight, no media) ---------------- */
 
-  const authorize = useCallback(async (): Promise<boolean> => {
-    setState('loading');
-    setError(null);
-    metricsRef.current = new PlaybackMetrics(contentId);
-    try {
-      const res = await fetch(playUrl, { method: 'HEAD', redirect: 'manual', cache: 'no-store' });
-      metricsRef.current.markAuthDone();
-      if (res.status === 404 || res.type === 'error') {
-        setError({
-          title: 'Episode unavailable',
-          detail: 'This title is not currently published or could not be found in the archive.',
-          retryable: false,
-        });
-        setState('error');
-        return false;
-      }
-      // 307 / opaqueredirect both mean "authorised, follow to source".
-      return true;
-    } catch (e) {
-      metricsRef.current.markAuthDone();
-      metricsRef.current.error(`auth:${e instanceof Error ? e.message : 'network'}`);
-      setError({
-        title: 'Could not reach the archive',
-        detail: 'The playback request failed before reaching the media source. Retry when ready.',
-        retryable: true,
-      });
-      setState('error');
-      return false;
-    }
-  }, [playUrl, contentId]);
-
+  /**
+   * Attach the source and start loading.
+   *
+   * The media request itself IS the authorization: `v.src = /api/play/<id>`
+   * receives the 307 and the browser follows it straight to the source. The
+   * previous HEAD preflight to the same URL added a whole extra authorization
+   * round trip before a single media byte could be requested (and the browser
+   * then repeated the request as a GET). It is removed; failures are
+   * classified from the media `error` event.
+   */
   const attachSrc = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
     resumedRef.current = false;
+    disarmStallTimer();
     if (loadTimer.current) window.clearTimeout(loadTimer.current);
     loadTimer.current = window.setTimeout(() => {
       setState((s) => {
@@ -215,22 +224,40 @@ export default function LatentPlayer({
         /* autoplay blocked: user presses play */
       });
     }
-  }, [playUrl, autoPlay]);
+  }, [playUrl, autoPlay, disarmStallTimer]);
 
-  const boot = useCallback(async () => {
+  /** Single boot path: no preflight, no duplicate authorization. */
+  const boot = useCallback(() => {
     autoRetries.current = 0;
-    const ok = await authorize();
-    if (ok) attachSrc();
-  }, [authorize, attachSrc]);
+    metricsRef.current = new PlaybackMetrics(contentId);
+    attachSrc();
+  }, [attachSrc, contentId]);
 
   const retry = useCallback(() => {
     setError(null);
     setState('loading');
-    void boot();
+    boot();
   }, [boot]);
 
+  // Restore remembered volume/mute/speed, then keep them saved.
   useEffect(() => {
-    void boot();
+    const v = videoRef.current;
+    const prefs = readPrefs();
+    if (v && prefs) {
+      v.volume = prefs.volume;
+      v.playbackRate = prefs.rate;
+      setVolumeState(prefs.volume);
+      setRate(prefs.rate);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    writePrefs({ volume, rate });
+  }, [volume, rate]);
+
+  useEffect(() => {
+    boot();
     return () => {
       clearTimers();
       const v = videoRef.current;
@@ -294,6 +321,8 @@ export default function LatentPlayer({
     };
 
     const onLoadStart = () => {
+      // The browser has issued the media request: authorization is under way.
+      metricsRef.current?.markAuthDone();
       setState((s) => (s === 'error' ? s : 'loading'));
       pokeControls();
     };
@@ -301,6 +330,8 @@ export default function LatentPlayer({
       if (loadTimer.current) window.clearTimeout(loadTimer.current);
       loadTimer.current = null;
       metricsRef.current?.markMetadata();
+      // First time the real network breakdown is complete enough to read.
+      metricsRef.current?.recordNetwork();
       setDuration(el.duration || NaN);
       setState((s) => (s === 'error' ? s : 'ready'));
       // Resume exactly once, only after metadata exists.
@@ -329,6 +360,7 @@ export default function LatentPlayer({
     };
     const onPlaying = () => {
       disarmStallTimer();
+      metricsRef.current?.recordNetwork();
       metricsRef.current?.markFirstFrame();
       setReport(metricsRef.current?.report() ?? null);
       setState('playing');
@@ -573,6 +605,18 @@ export default function LatentPlayer({
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
+  /** Step a single frame (~1/30 s). Pauses first so the step is deterministic. */
+  const frameStep = useCallback(
+    (dir: 1 | -1) => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (!v.paused) v.pause();
+      v.currentTime = Math.max(0, (v.currentTime || 0) + dir * (1 / 30));
+      pokeControls();
+    },
+    [pokeControls],
+  );
+
   /* ---------------- keyboard ---------------- */
 
   useEffect(() => {
@@ -624,6 +668,18 @@ export default function LatentPlayer({
         case 'F':
           toggleFullscreen();
           break;
+        case ',':
+          frameStep(-1);
+          break;
+        case '.':
+          frameStep(1);
+          break;
+        case '?':
+          setShowHelp((v) => !v);
+          break;
+        case 'Escape':
+          setShowHelp(false);
+          break;
         default: {
           if (/^[0-9]$/.test(e.key)) {
             seekToRatio(Number(e.key) / 10);
@@ -633,7 +689,27 @@ export default function LatentPlayer({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [state, togglePlay, seekBy, seekToRatio, nudgeRate, toggleMute, toggleFullscreen, pokeControls]);
+  }, [state, togglePlay, seekBy, seekToRatio, nudgeRate, toggleMute, toggleFullscreen, pokeControls, frameStep]);
+
+  /** Touch long-press plays at 2x while held, then restores the prior rate. */
+  const startBoost = useCallback(() => {
+    if (boostTimer.current) window.clearTimeout(boostTimer.current);
+    boostTimer.current = window.setTimeout(() => {
+      const v = videoRef.current;
+      if (!v) return;
+      boostPrevRate.current = v.playbackRate;
+      v.playbackRate = 2;
+      setBoosting(true);
+      pokeControls();
+    }, 380);
+  }, [pokeControls]);
+
+  const endBoost = useCallback(() => {
+    if (boostTimer.current) { window.clearTimeout(boostTimer.current); boostTimer.current = null; }
+    const v = videoRef.current;
+    if (v && boostPrevRate.current !== null) { v.playbackRate = boostPrevRate.current; boostPrevRate.current = null; }
+    setBoosting(false);
+  }, []);
 
   /* ---------------- tap / double-tap (touch-first) ---------------- */
 
@@ -729,14 +805,43 @@ export default function LatentPlayer({
         {/* touch zones: double-tap left/right seeks, single tap toggles UI */}
         <div
           className="lv-tap lv-tap-left"
-          onPointerUp={(e) => e.pointerType !== 'mouse' && onSurfaceTap(e, 'left')}
+          onPointerDown={(e) => e.pointerType !== 'mouse' && startBoost()}
+          onPointerUp={(e) => { if (e.pointerType === 'mouse') return; endBoost(); onSurfaceTap(e, 'left'); }}
+          onPointerCancel={endBoost}
+          onPointerLeave={endBoost}
           aria-hidden="true"
         />
         <div
           className="lv-tap lv-tap-right"
-          onPointerUp={(e) => e.pointerType !== 'mouse' && onSurfaceTap(e, 'right')}
+          onPointerDown={(e) => e.pointerType !== 'mouse' && startBoost()}
+          onPointerUp={(e) => { if (e.pointerType === 'mouse') return; endBoost(); onSurfaceTap(e, 'right'); }}
+          onPointerCancel={endBoost}
+          onPointerLeave={endBoost}
           aria-hidden="true"
         />
+
+        {boosting && (
+          <div className="lv-boost" aria-hidden="true">
+            2× · hold
+          </div>
+        )}
+
+        {showHelp && (
+          <div className="lv-help" role="dialog" aria-label="Keyboard shortcuts">
+            <div className="lv-help-title">Shortcuts</div>
+            <ul>
+              <li><kbd>Space</kbd> play / pause</li>
+              <li><kbd>←</kbd> <kbd>→</kbd> 5 s · <kbd>Shift</kbd>+ arrow 30 s</li>
+              <li><kbd>,</kbd> <kbd>.</kbd> step one frame</li>
+              <li><kbd>0</kbd>–<kbd>9</kbd> jump to 0–90%</li>
+              <li><kbd>M</kbd> mute · <kbd>F</kbd> fullscreen</li>
+              <li><kbd>&lt;</kbd> <kbd>&gt;</kbd> speed · <kbd>?</kbd> this panel</li>
+            </ul>
+            <button type="button" className="lv-help-close" onClick={() => setShowHelp(false)}>
+              Close
+            </button>
+          </div>
+        )}
 
         {seekFlash && (
           <div key={seekFlash.n} className={`lv-seekflash ${seekFlash.side}`} aria-hidden="true">
@@ -813,6 +918,13 @@ export default function LatentPlayer({
               <div>
                 auth={report.authMs ?? '?'}ms meta={report.metadataMs ?? '?'}ms first=
                 {report.firstFrameMs ?? '?'}ms rebuf={report.rebuffers}
+              </div>
+            )}
+            {report && (
+              <div>
+                net: auth={report.net.authMs ?? '?'} redir={report.net.redirectMs ?? '?'} ttfb=
+                {report.net.sourceTtfbMs ?? '?'} total={report.net.sourceTotalMs ?? '?'} host=
+                {report.net.mediaHost ?? '?'}
               </div>
             )}
           </div>

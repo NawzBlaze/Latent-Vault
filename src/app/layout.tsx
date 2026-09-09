@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileTabBar from '@/components/MobileTabBar';
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/site';
+import { SOURCE_ORIGIN } from '@/source/adapter';
 import '@/styles/globals.css';
 import '@/styles/player.css';
 
@@ -54,6 +55,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+      <head>
+        {/* Media goes straight from the browser to the source, so warm that
+            connection early: DNS + TLS for the source origin would otherwise
+            be paid inside the first-frame budget. */}
+        <link rel="preconnect" href={SOURCE_ORIGIN} />
+        <link rel="dns-prefetch" href={SOURCE_ORIGIN} />
+      </head>
       <body>
         <a className="skip-link" href="#main">
           Skip to content

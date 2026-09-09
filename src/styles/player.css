@@ -530,3 +530,88 @@
     opacity: 1;
   }
 }
+
+/* ---------------- hold-to-boost (touch) + shortcuts panel ---------------- */
+
+.lv-boost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(6, 5, 10, 0.78);
+  border: 1px solid rgba(244, 236, 219, 0.22);
+  color: var(--paper, #f4ecdb);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.lv-help {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 8;
+  min-width: min(360px, 86vw);
+  max-height: 78%;
+  overflow: auto;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: rgba(9, 8, 13, 0.94);
+  border: 1px solid rgba(244, 236, 219, 0.16);
+  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.85);
+  color: var(--paper, #f4ecdb);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.lv-help-title {
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-bright, #f5cd7b);
+  margin-bottom: 10px;
+}
+
+.lv-help ul { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 8px; }
+.lv-help li { font-size: 13.5px; color: var(--paper-dim, #cfc3ad); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.lv-help kbd {
+  display: inline-block;
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(244, 236, 219, 0.1);
+  border: 1px solid rgba(244, 236, 219, 0.18);
+  font-family: var(--font-sans, inherit);
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--paper, #f4ecdb);
+}
+
+.lv-help-close {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(244, 236, 219, 0.18);
+  background: rgba(244, 236, 219, 0.06);
+  color: var(--paper, #f4ecdb);
+  font-size: 13.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.lv-help-close:hover { background: rgba(244, 236, 219, 0.12); }
+
+/* A visible "?" affordance so the panel is discoverable on desktop. */
+.lv-helpbtn {
+  min-width: 44px;
+  min-height: 44px;
+}
