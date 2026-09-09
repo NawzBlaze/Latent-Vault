@@ -1,0 +1,13 @@
+# Keep the upload to real source. Generated and local-only paths must never
+# ship: they bloat the deployment and can shadow a clean build.
+node_modules
+.next
+out
+.vercel
+.git
+test-results
+playwright-report
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
