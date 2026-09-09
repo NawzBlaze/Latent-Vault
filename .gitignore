@@ -1,0 +1,29 @@
+# --- dependencies ---
+node_modules/
+
+# --- Next.js build output ---
+.next/
+out/
+# NB: next-env.d.ts is intentionally tracked — tsconfig.json includes it.
+
+# --- TypeScript incremental build cache ---
+*.tsbuildinfo
+
+# --- Playwright / Vitest artefacts ---
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# --- environment / secrets ---
+# Real values live only in the Vercel dashboard. Never commit them.
+.env
+.env.*
+!.env.example
+.vercel/
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+*.swp
+*.log

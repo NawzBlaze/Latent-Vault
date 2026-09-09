@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Latent Vault mark">
+  <!-- Vault arch: outer + inner + keystone diamond -->
+  <g fill="none" stroke="#d2a94f" stroke-width="3">
+    <path d="M12 54V30C12 18.4 20.4 10 32 10s20 8.4 20 20v24"/>
+    <path d="M20 54V31c0-7.2 4.6-12 12-12s12 4.8 12 12v23" stroke-width="2" opacity="0.65"/>
+  </g>
+  <path d="M32 2.5l4.2 4.2-4.2 4.2-4.2-4.2z" fill="#d2a94f"/>
+  <path d="M28.5 30.5v9l7.5-4.5z" fill="#d2a94f"/>
+</svg>

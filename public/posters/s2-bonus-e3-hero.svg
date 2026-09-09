@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" role="img" aria-label="Artwork for season 2 episode 3">
+  <defs><radialGradient id="hvs2-bonus-e3" cx="50%" cy="38%" r="85%">
+    <stop offset="0%" stop-color="#14110a"/><stop offset="62%" stop-color="#0d0b07"/><stop offset="100%" stop-color="#070604"/>
+  </radialGradient></defs><rect width="1600" height="640" fill="url(#hvs2-bonus-e3)"/>
+  <g fill="none" stroke="#d2a94f" opacity="0.19">
+    <path d="M 50 700 V 340 A 280 280 0 0 1 610 340 V 700" stroke-width="2"/>
+    <path d="M 64 700 V 340 A 266 266 0 0 1 596 340 V 700" stroke-width="1"/>
+  </g>
+  <g fill="none" stroke="#d2a94f" opacity="0.12">
+    <path d="M 140 700 V 330 A 190 190 0 0 1 520 330 V 700" stroke-width="2"/>
+    <path d="M 154 700 V 330 A 176 176 0 0 1 506 330 V 700" stroke-width="1"/>
+  </g>
+  <text x="1510" y="580" text-anchor="end" font-family="Georgia, 'Times New Roman', serif" font-size="560" fill="#d2a94f" opacity="0.22">03</text>
+  <text x="1504" y="574" text-anchor="end" font-family="Georgia, 'Times New Roman', serif" font-size="560" fill="none" stroke="#d2a94f" stroke-width="1.5" opacity="0.45">03</text>
+  <rect x="22" y="22" width="1556" height="596" fill="none" stroke="#d2a94f" stroke-width="1" opacity="0.45"/>
+  <rect x="27" y="27" width="1546" height="586" fill="none" stroke="#d2a94f" stroke-width="0.5" opacity="0.22"/>
+  <rect x="120" y="150" width="52" height="2" fill="#d2a94f" opacity="0.8"/>
+  <rect x="120" y="150" width="26" height="2" fill="#efe6d4" opacity="0.9"/>
+</svg>
