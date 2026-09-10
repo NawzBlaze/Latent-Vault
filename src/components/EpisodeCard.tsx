@@ -38,7 +38,7 @@ export default function EpisodeCard({ item, progress, eager = false }: Props) {
           loading={eager ? 'eager' : 'lazy'}
           decoding="async"
         />
-        <span className="ep-card-badge">{seasonEpisodeLabel(item.season, item.episodeNumber, item.kind)}</span>
+        <span className={`ep-card-badge${playable ? '' : ' is-muted'}`}>{seasonEpisodeLabel(item.season, item.episodeNumber, item.kind)}</span>
         {item.resolution && <span className="ep-card-quality">{item.resolution.label}</span>}
         {!playable && <span className="ep-card-unavailable">Not available</span>}
       </span>

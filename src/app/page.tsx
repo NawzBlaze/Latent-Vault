@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getPublished } from '@/catalog/catalogue';
-import { latestRegular, sortChronological } from '@/catalog/order';
+import { latestRegular, playableFirst, sortChronological } from '@/catalog/order';
 import Hero from '@/components/Hero';
 import EpisodeCard from '@/components/EpisodeCard';
 import ContinueWatching from '@/components/ContinueWatching';
@@ -42,8 +42,8 @@ function Section({
 export default function HomePage() {
   const published = getPublished();
   const hero = latestRegular(published);
-  const s2 = sortChronological(published.filter((i) => i.season === 2 && i.kind === 'episode'));
-  const bonus = sortChronological(published.filter((i) => i.kind === 'bonus'));
+  const s2 = playableFirst(published.filter((i) => i.season === 2 && i.kind === 'episode'));
+  const bonus = playableFirst(published.filter((i) => i.kind === 'bonus'));
   const specials = sortChronological(published.filter((i) => i.kind === 'special'));
 
   return (

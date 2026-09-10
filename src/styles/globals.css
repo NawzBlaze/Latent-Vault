@@ -1088,3 +1088,94 @@ a:hover { color: var(--gold); }
   body { background: #fff; color: #000; }
   .masthead, .footer, .hero-art { display: none; }
 }
+
+/* ============================================================
+   Perfection pass — search, footer, crops, badges, touch
+   ============================================================ */
+
+/* Suggestion chips: dark, bordered, on-theme (were browser-default white). */
+.search-hints button {
+  min-height: 32px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--glass);
+  color: var(--paper-dim);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+.search-hints button:hover { color: var(--gold-bright); border-color: var(--line-gold); background: var(--glass-2); }
+
+/* Search hit: horizontal row, true 16:9 thumbnail, compact metadata. */
+.search-hit {
+  display: grid;
+  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.search-hit > img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center 35%;
+  border-radius: var(--radius-sm);
+}
+.search-hit-body { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.search-hit-body .chip { width: auto; }
+.search-hit:hover { transform: translateY(-2px); }
+@media (max-width: 640px) {
+  .search-hit { grid-template-columns: 108px minmax(0, 1fr); gap: 12px; padding: 10px; }
+}
+@media (pointer: coarse) {
+  .search-hints button { min-height: 44px; }
+}
+
+/* Footer: real columns + tappable links. */
+.footer-inner { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.footer h4 {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.footer nav { display: flex; flex-direction: column; align-items: flex-start; }
+.footer nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  color: var(--paper-dim);
+  text-decoration: none;
+  font-size: 14px;
+}
+.footer nav a:hover { color: var(--gold-bright); }
+.footer-legal { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 16px; }
+@media (max-width: 760px) {
+  .footer-inner { grid-template-columns: 1fr; gap: 18px; }
+  .footer nav a { min-height: 44px; }
+}
+
+/* Crop the burned-in corner overlay out of real frames (no re-extraction). */
+.ep-card-art img { transform: scale(1.1); transform-origin: 52% 60%; }
+.ep-card:hover .ep-card-art img { transform: scale(1.16); }
+.hero-art img { transform: scale(1.08); transform-origin: 52% 60%; }
+
+/* Unavailable gets a neutral badge — gold means playable. */
+.ep-card-badge.is-muted { background: rgba(244, 236, 219, 0.14); color: var(--paper-dim); box-shadow: none; }
+
+/* Brand link touch target. */
+.brand { min-height: 44px; }
+
+/* 404 rhythm. */
+.notfound { padding: clamp(40px, 9vw, 96px) 0; }

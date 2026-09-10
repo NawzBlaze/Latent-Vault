@@ -1,4 +1,5 @@
 import type { ContentItem } from './types';
+import { isPlayable } from './types';
 
 function rank(item: ContentItem): number {
   // Regular episodes first, then bonus, then specials — each by season/episode.
@@ -49,4 +50,13 @@ export function related(items: ContentItem[], current: ContentItem, limit = 6): 
   return [...others]
     .sort((a, b) => score(b) - score(a) || rank(b) - rank(a))
     .slice(0, limit);
+}
+
+/**
+ * Display order for highlight rails: playable items first, unavailable last,
+ * chronological within each group (stable sort). On-card numbering is
+ * unchanged — this only decides what a landing visitor sees first.
+ */
+export function playableFirst(items: ContentItem[]): ContentItem[] {
+  return sortChronological(items).sort((a, b) => Number(isPlayable(b)) - Number(isPlayable(a)));
 }
