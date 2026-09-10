@@ -68,7 +68,10 @@ export default function SearchExperience({
           {results.map(({ item, matchedOn }) => (
             <Link key={item.id} href={`/watch/${item.slug}`} className="search-hit">
               {/* eslint-disable-next-line @next/next/no-img-element -- local SVG key art */}
-              <img src={item.thumbnail} alt="" width="640" height="400" loading="lazy" decoding="async" />
+              <span className="search-hit-art">
+                {/* eslint-disable-next-line @next/next/no-img-element -- real archive frame */}
+                <img src={item.thumbnail} alt="" width="640" height="360" loading="lazy" decoding="async" />
+              </span>
               <span className="search-hit-body">
                 <span className="chip chip-gold">
                   {seasonEpisodeLabel(item.season, item.episodeNumber, item.kind)}

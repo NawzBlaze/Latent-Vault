@@ -1122,13 +1122,22 @@ a:hover { color: var(--gold); }
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
-.search-hit > img {
+.search-hit-art {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  aspect-ratio: 16 / 9;
+  background: var(--ink-3);
+}
+.search-hit-art img {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   object-fit: cover;
   object-position: center 35%;
-  border-radius: var(--radius-sm);
+  transform: scale(1.12);
+  transform-origin: 52% 60%;
 }
 .search-hit-body { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .search-hit-body .chip { width: auto; }
