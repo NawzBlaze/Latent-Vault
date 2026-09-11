@@ -6,7 +6,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata: Metadata = {
   title: 'Search the archive',
   description:
-    'Search India’s Got Latent episodes by title, episode number, season, or guest. Results come only from verified archive metadata.',
+    'Search Season 2 of India’s Got Latent by title, episode number, guest, panelist or description.',
   alternates: { canonical: `${SITE_URL}/search` },
 };
 
@@ -15,9 +15,9 @@ export default function SearchPage({ searchParams }: { searchParams: { q?: strin
   return (
     <div className="wrap">
       <div className="search-hero">
-        <div className="kicker">The index</div>
+        <span className="label">The index</span>
         <h1>Search the archive</h1>
-        <SearchExperience items={published} initialQuery={searchParams.q ?? ''} />
+        <SearchExperience key={searchParams.q ?? ''} items={published} initialQuery={searchParams.q ?? ''} />
       </div>
     </div>
   );

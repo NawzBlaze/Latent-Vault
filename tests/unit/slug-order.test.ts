@@ -43,7 +43,7 @@ describe('ordering', () => {
   it('chains prev/next within the same kind (numbering uncollapsed)', () => {
     const s2e3 = ITEMS.find((i) => i.id === 's2e3')!;
     const pn = prevNext(ITEMS, s2e3);
-    // E2 is unavailable but keeps its place in the chain.
+    // E2 keeps its place in the chain.
     expect(pn.prev?.id).toBe('s2e2');
     expect(pn.next?.id).toBe('s2e4');
 

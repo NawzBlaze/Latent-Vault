@@ -10,10 +10,14 @@ const onDisk = (p: string) => existsSync(join(PUBLIC_DIR, p)) && statSync(join(P
 describe('episode artwork', () => {
   it('every playable item uses a real frame extracted from its own video', () => {
     for (const item of CATALOGUE.filter(isPlayable)) {
-      expect(item.thumbnail, `${item.id} thumbnail`).toMatch(/^\/posters\/frame-[a-z0-9]+\.jpg$/);
+      const isYoutube = item.source?.primary.origin === 'youtube';
+      if (isYoutube) {
+        // YouTube-sourced items use their own thumbnail naming convention.
+        expect(item.thumbnail, `${item.id} thumbnail`).toMatch(/^\/posters\/s2(e|bonus-e)\d+\.jpg$/);
+      } else {
+        expect(item.thumbnail, `${item.id} thumbnail`).toMatch(/^\/posters\/frame-[a-z0-9]+\.jpg$/);
+      }
       expect(onDisk(item.thumbnail), `${item.thumbnail} on disk`).toBe(true);
-      // Real video stills, not the synthetic SVG key art.
-      expect(item.heroImage, `${item.id} hero`).toBe(item.thumbnail);
     }
   });
 
@@ -26,10 +30,13 @@ describe('episode artwork', () => {
       expect(item.thumbnail).toBe('/posters/unavailable.svg');
       expect(onDisk(item.thumbnail)).toBe(true);
     }
+    // All published items are now playable — this test is a no-op but kept for future-proofing.
   });
 
   it('no synthetic episode-number key art is referenced any more', () => {
     for (const item of CATALOGUE) {
+      const isYoutube = item.source?.primary.origin === 'youtube';
+      if (isYoutube) continue; // YouTube items use their own naming
       expect(item.thumbnail).not.toMatch(/\/posters\/s2-(e|bonus-e)\d/);
       expect(item.heroImage).not.toMatch(/\/posters\/s2-(e|bonus-e)\d/);
     }

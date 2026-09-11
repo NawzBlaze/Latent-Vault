@@ -62,6 +62,12 @@ export function parseEpisodeQuery(raw: string): EpisodeQuery | null {
   const sn = n.match(/\bseasons?\s+0?(\d+)\b/);
   if (sn) season = Number(sn[1]);
 
+  // Bare "S2" or "s02" (no episode number).
+  const bareSeason = n.match(/\bs0?(\d+)\b/);
+  if (bareSeason && season === null && episode === null && kind === null) {
+    season = Number(bareSeason[1]);
+  }
+
   // Bare pair like "2 5" is too ambiguous — ignore.
   if (season === null && episode === null && kind === null) return null;
   // A lone "episode"/"season" word with no number is not an episode query.

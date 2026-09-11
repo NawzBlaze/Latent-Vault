@@ -23,9 +23,14 @@ export async function resolvePlayable(
   if (refs.length === 0) {
     throw new SourceError('NOT_FOUND', 'no source references to resolve');
   }
+  // YouTube refs are not resolved server-side — they're embedded as iframes.
+  if (refs[0].origin === 'youtube') {
+    throw new SourceError('NOT_FOUND', 'youtube content is embedded, not resolved');
+  }
   let lastErr: unknown = null;
   for (let i = 0; i < refs.length; i++) {
     const ref = refs[i];
+    if (ref.origin === 'youtube') continue; // skip youtube in alternates
     try {
       const media =
         ref.origin === 'index'

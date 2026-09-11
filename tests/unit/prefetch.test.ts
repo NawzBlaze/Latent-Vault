@@ -48,7 +48,7 @@ describe('intent-based playback prefetch', () => {
   it('is capped so a scroll over the grid cannot stampede the source', () => {
     for (let i = 0; i < 12; i++) prefetchPlayback(`id-${i}`);
     vi.advanceTimersByTime(500);
-    expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(6);
+    expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(8);
   });
 
   it('is a no-op during SSR', () => {

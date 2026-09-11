@@ -8,14 +8,13 @@
  *  - The Yuhu item maps to a REAL okcdn entry on yuhu.freeforall.dev,
  *    verified end-to-end (worker resolve -> CDN HEAD/Range -> in-browser
  *    probe of pixels, codecs and duration).
+ *  - YouTube items stream from the official YouTube upload via embedded
+ *    iframe. The archive does not re-host or proxy YouTube video bytes.
  *  - Durations, resolutions and codecs are PROBED from real media, never
  *    taken from labels alone.
  *  - Episode identity, release dates and people credits are cross-verified
  *    against official YouTube metadata (oEmbed titles, upload dates,
  *    lengthSeconds) and independent press reporting. See docs/SOURCE.md.
- *  - Unknown stays unknown: E1/E2 carry verified identities but
- *    availability 'unavailable' and NO source refs — never fabricated
- *    playback, durations or quality badges.
  *  - No expiring data is stored: index refs hold exact file names + sizes;
  *    Yuhu refs hold stable dataId + videoId + verified quality. Fresh URLs
  *    are minted at request time by the source layer.
@@ -37,27 +36,28 @@ export const CATALOGUE: ContentItem[] = [
     kind: 'episode',
     title: 'Episode 1',
     description:
-      'Season 2, Episode 1 of India’s Got Latent, released 20 June 2026. Panel: Alia Bhatt, Sharvari and Ashish Solanki. No usable media copy is currently available from the archive’s sources, so this episode cannot be streamed yet.',
+      'Season 2, Episode 1 of India\u2019s Got Latent, released 20 June 2026. Panel: Alia Bhatt, Sharvari and Ashish Solanki. Streamed via the official YouTube upload.',
     releaseDate: '2026-06-20',
-    archivedAt: null,
+    archivedAt: '2026-06-20',
     durationSeconds: null,
-    thumbnail: '/posters/unavailable.svg',
-    heroImage: '/posters/unavailable.svg',
+    thumbnail: '/posters/s2e1.jpg',
+    heroImage: '/posters/s2e1-hero.jpg',
     guests: ['Alia Bhatt', 'Sharvari', 'Ashish Solanki'],
     panelists: [],
     participants: [],
     hosts: [],
     judges: [],
     aliases: [],
-    source: null,
-    availability: 'unavailable',
+    source: {
+      primary: {
+        origin: 'youtube',
+        videoId: 'eHTXQW58WhA',
+      },
+      alternates: [],
+    },
+    availability: 'available',
     resolution: null,
     published: true,
-    // Outbound link only — the show's own upload. Never a playback source.
-    officialUrl: {
-      url: 'https://www.youtube.com/watch?v=eHTXQW58WhA',
-      label: 'Watch on YouTube — official Samay Raina upload',
-    },
   }),
 
   item({
@@ -68,26 +68,28 @@ export const CATALOGUE: ContentItem[] = [
     kind: 'episode',
     title: 'Episode 2',
     description:
-      'Season 2, Episode 2 of India’s Got Latent, released 3 July 2026. Panel: Harssh Limbachiya, Kiku Sharda and Chandan Prabhakar. No usable media copy is currently available from the archive’s sources, so this episode cannot be streamed yet.',
+      'Season 2, Episode 2 of India\u2019s Got Latent, released 3 July 2026. Panel: Harssh Limbachiya, Kiku Sharda and Chandan Prabhakar. Streamed via the official YouTube upload.',
     releaseDate: '2026-07-03',
-    archivedAt: null,
+    archivedAt: '2026-07-03',
     durationSeconds: null,
-    thumbnail: '/posters/unavailable.svg',
-    heroImage: '/posters/unavailable.svg',
+    thumbnail: '/posters/s2e2.jpg',
+    heroImage: '/posters/s2e2-hero.jpg',
     guests: ['Harssh Limbachiya', 'Kiku Sharda', 'Chandan Prabhakar'],
     panelists: [],
     participants: [],
     hosts: [],
     judges: [],
     aliases: [],
-    source: null,
-    availability: 'unavailable',
+    source: {
+      primary: {
+        origin: 'youtube',
+        videoId: 'c35fpGWqXnk',
+      },
+      alternates: [],
+    },
+    availability: 'available',
     resolution: null,
     published: true,
-    officialUrl: {
-      url: 'https://www.youtube.com/watch?v=c35fpGWqXnk',
-      label: 'Watch on YouTube — official Samay Raina upload',
-    },
   }),
 
   item({

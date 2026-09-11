@@ -112,11 +112,12 @@ describe('GET /api/play/[contentId]', () => {
     expect(res.status).toBe(404);
   });
 
-  it('404s verified-but-unavailable identities with an honest code', async () => {
+  it('returns youtube source for E1 (previously unavailable)', async () => {
     const res = await GET(new Request('http://x/api/play/s2e1'), { params: { contentId: 's2e1' } });
-    expect(res.status).toBe(404);
-    const body = (await res.json()) as { error: string };
-    expect(body.error).toBe('unavailable');
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { source: string; videoId: string };
+    expect(body.source).toBe('youtube');
+    expect(body.videoId).toBe('eHTXQW58WhA');
   });
 
   it('400s invalid ids', async () => {

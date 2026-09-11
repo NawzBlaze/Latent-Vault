@@ -49,17 +49,8 @@ describe('catalogue validation', () => {
         expect(blob).not.toMatch(/tbd|todo|lorem|xxx|test test/i);
       }
     }
-    // Unavailable identities stay honest: no media facts at all.
-    for (const item of CATALOGUE.filter((i) => i.availability === 'unavailable')) {
-      expect(item.source).toBeNull();
-      expect(item.durationSeconds).toBeNull();
-      expect(item.resolution).toBeNull();
-      expect(item.archivedAt).toBeNull();
-    }
-    expect(CATALOGUE.filter((i) => i.availability === 'unavailable').map((i) => i.id).sort()).toEqual([
-      's2e1',
-      's2e2',
-    ]);
+    // Every published item now has a source — no remaining unavailable identities.
+    expect(CATALOGUE.filter((i) => i.availability === 'unavailable').map((i) => i.id).sort()).toEqual([]);
   });
 
   it('labels resolution honestly (label matches probed pixels)', () => {
@@ -103,7 +94,7 @@ describe('catalogue validation', () => {
     expect(getById('nope')).toBeUndefined();
     expect(getSeasons()).toEqual([2]);
     expect(getPlayable().map((i) => i.id).sort()).toEqual(
-      ['s2b1', 's2b2', 's2b3', 's2e3', 's2e4', 's2e5', 's2e6'],
+      ['s2b1', 's2b2', 's2b3', 's2e1', 's2e2', 's2e3', 's2e4', 's2e5', 's2e6'],
     );
   });
 
@@ -113,13 +104,11 @@ describe('catalogue validation', () => {
       validateCatalogue([_OVER as never]).filter((i) => i.level === 'error');
     // Season 1 is out of scope.
     expect(errs({ ...base, season: 1 }).some((i) => i.field === 'season')).toBe(true);
-    // Available without refs / unavailable with refs.
+    // Available without source.
     expect(errs({ ...base, source: null }).length).toBeGreaterThan(0);
-    const unav = getById('s2e1')!;
-    expect(errs({ ...unav, source: base.source }).some((i) => i.field === 'source')).toBe(true);
-    expect(
-      errs({ ...unav, durationSeconds: 60 }).some((i) => i.field === 'durationSeconds'),
-    ).toBe(true);
+    // YouTube item with index source violates the "youtube must not mix" rule.
+    const ytItem = getById('s2e1')!;
+    expect(errs({ ...ytItem, source: { primary: { ...base.source!.primary }, alternates: [{ ...ytItem.source!.primary }] } }).some((i) => i.field === 'source')).toBe(true);
     // Yuhu primary ahead of an index ref violates priority.
     const yuhuPrimary = getById('s2e6')!.source!;
     expect(
@@ -139,8 +128,8 @@ describe('publication gate', () => {
 
   it('rejects unknown, unpublished, unavailable, and sourceless items', () => {
     expect(() => assertPublishable(undefined)).toThrow();
-    expect(() => assertPublishable(getById('s2e1'))).toThrow(); // unavailable identity
-    expect(isPlayable(getById('s2e1')!)).toBe(false);
+    expect(() => assertPublishable(getById('s2e1'))).not.toThrow(); // now available with youtube source
+    expect(isPlayable(getById('s2e1')!)).toBe(true);
     const base = getById('s2e5');
     expect(base).toBeDefined();
     expect(() => assertPublishable({ ...base!, published: false })).toThrow();

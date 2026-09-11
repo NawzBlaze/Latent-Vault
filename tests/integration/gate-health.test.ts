@@ -43,8 +43,8 @@ describe('GET /api/health', () => {
     expect(catalogue.seasons).toEqual([2]);
     expect(catalogue.episodes).toBe(6);
     expect(catalogue.bonus).toBe(3);
-    expect(catalogue.available).toBe(7);
-    expect(catalogue.unavailable).toBe(2);
+    expect(catalogue.available).toBe(9);
+    expect(catalogue.unavailable).toBe(0);
     const sources = body.sources as Record<string, { reachable: boolean }>;
     expect(sources.index.reachable).toBe(true);
     expect(sources.yuhu.reachable).toBe(true);

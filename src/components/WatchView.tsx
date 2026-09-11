@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ContentItem } from '@/catalog/types';
 import { isPlayable, primaryOrigin } from '@/catalog/types';
 import type { PrevNext } from '@/catalog/order';
 import LatentPlayer from '@/player/LatentPlayer';
 import { formatRuntime } from '@/lib/format';
-import EpisodeCard from './EpisodeCard';
+import { prefetchOnPageLoad } from '@/lib/prefetch';
 
 interface Props {
   item: ContentItem;
@@ -16,46 +16,39 @@ interface Props {
 }
 
 const ROLES: { key: 'guests' | 'panelists' | 'participants' | 'hosts' | 'judges'; label: string }[] = [
-  { key: 'guests', label: 'Guests' },
-  { key: 'panelists', label: 'Panelists' },
+  { key: 'guests',       label: 'Guests' },
+  { key: 'panelists',    label: 'Panelists' },
   { key: 'participants', label: 'Participants' },
-  { key: 'hosts', label: 'Hosts' },
-  { key: 'judges', label: 'Judges' },
+  { key: 'hosts',        label: 'Hosts' },
+  { key: 'judges',       label: 'Judges' },
 ];
 
 function codecLabel(codec?: string): string | null {
   if (!codec) return null;
   const map: Record<string, string> = {
-    avc1: 'AVC',
-    'V_MPEG4/ISO/AVC': 'AVC',
+    avc1: 'AVC', 'V_MPEG4/ISO/AVC': 'AVC',
     av01: 'AV1',
-    hev1: 'HEVC',
-    hvc1: 'HEVC',
-    'V_MPEGH/ISO/HEVC': 'HEVC',
-    mp4a: 'AAC',
-    A_AAC: 'AAC',
-    'ac-3': 'Dolby Digital',
-    'ec-3': 'Dolby Digital+',
-    A_EAC3: 'Dolby Digital+',
+    hev1: 'HEVC', hvc1: 'HEVC', 'V_MPEGH/ISO/HEVC': 'HEVC',
+    mp4a: 'AAC', A_AAC: 'AAC',
+    'ac-3': 'Dolby Digital', 'ec-3': 'Dolby Digital+', A_EAC3: 'Dolby Digital+',
   };
   return map[codec] ?? codec;
 }
 
-function sourceLine(origin: 'index' | 'yuhu' | null): string | null {
+function sourceLine(origin: 'index' | 'yuhu' | 'youtube' | null): string | null {
   if (origin === 'index') return 'Streams directly from index.csbots.live';
-  if (origin === 'yuhu') return 'Streams via the Yuhu archive (secondary source)';
+  if (origin === 'yuhu')  return 'Streams via the Yuhu archive (secondary source)';
+  if (origin === 'youtube') return 'Streamed via official YouTube upload';
   return null;
 }
 
 export default function WatchView({ item, prevNext, related }: Props) {
   const [theater, setTheater] = useState(false);
   const playable = isPlayable(item);
-  const label =
-    item.kind === 'episode'
-      ? `Season ${item.season} · Episode ${item.episodeNumber}`
-      : `Season ${item.season} · ${item.title}`;
+  const isYoutube = item.source?.primary.origin === 'youtube';
+  const youtubeVideoId = isYoutube && item.source?.primary.origin === 'youtube' ? item.source.primary.videoId : null;
   const v = item.source?.primary ?? null;
-  const formatBits = v
+  const formatBits = v && v.origin !== 'youtube'
     ? [
         v.mimeType === 'video/mp4' ? 'MP4' : v.mimeType === 'video/x-matroska' ? 'MKV' : null,
         codecLabel(v.videoCodec),
@@ -64,67 +57,100 @@ export default function WatchView({ item, prevNext, related }: Props) {
     : [];
   const origin = sourceLine(primaryOrigin(item));
 
+  useEffect(() => {
+    if (playable && !isYoutube) prefetchOnPageLoad(item.id);
+  }, [item.id, playable, isYoutube]);
+
   return (
     <div className={`watch-layout${theater ? ' is-theater' : ''}`}>
       <div>
-        {playable && item.source ? (
+        {playable && youtubeVideoId ? (
+          <div className="yt-embed" style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1`}
+              title={`India's Got Latent — S2 E${item.episodeNumber}`}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        ) : playable && item.source ? (
           <LatentPlayer
             contentId={item.id}
-            title={`India's Got Latent — ${label}`}
+            title={`India's Got Latent — ${item.kind === 'episode' ? `S2 E${item.episodeNumber}` : item.title}`}
             poster={item.thumbnail}
             qualityLabel={item.resolution?.label}
             formatLabel={formatBits.join(' · ') || undefined}
-            sourceNote={v?.note}
+            sourceNote={'note' in (v ?? {}) ? (v as { note?: string }).note : undefined}
+            prevNext={prevNext}
             onTheaterChange={setTheater}
           />
-        ) : (
-          <div className="unavailable-panel glass-surface" role="status" aria-label="Episode not available">
-            <div className="unavailable-kicker">{label}</div>
-            <h2 className="unavailable-title">Not currently available</h2>
-            <p className="unavailable-copy">
-              This episode’s identity is verified, but no usable media copy exists on the
-              archive’s sources yet — so there is nothing to play. The moment a verified
-              copy appears, it will stream here.
-            </p>
-            {item.officialUrl ? (
-              <div className="unavailable-official">
-                <a
-                  className="btn btn-gold btn-glow"
-                  href={item.officialUrl.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                >
-                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                    <path
-                      fill="currentColor"
-                      d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4L15.8 12l-6.2 3.6Z"
-                    />
-                  </svg>
-                  {item.officialUrl.label}
-                </a>
-                <p className="unavailable-note">
-                  Opens the show’s own channel in a new tab. The archive does not stream,
-                  embed or proxy this video.
-                </p>
-              </div>
-            ) : null}
-          </div>
-        )}
+        ) : (() => {
+          const ytUrl = item.officialUrl?.url ?? '';
+          const ytMatch = ytUrl.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+          const ytId = ytMatch?.[1] ?? null;
+          const ytThumb = ytId ? `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg` : item.thumbnail;
 
-        <div className="watch-title-block">
-          <div className="kicker">{label}</div>
-          <h1>India’s Got Latent</h1>
-          <div className="meta-row">
-            <span className="chip chip-gold">S{item.season} E{item.episodeNumber}</span>
-            <span className="chip">{item.kind === 'bonus' ? 'Bonus' : item.kind === 'special' ? 'Special' : 'Episode'}</span>
+          return (
+            <div className="yt-panel" role="status" aria-label="Episode available on YouTube">
+              <div
+                className="yt-panel-bg"
+                style={{ backgroundImage: `url(${ytThumb})` }}
+                aria-hidden="true"
+              />
+              <div className="yt-panel-body">
+                <div className="yt-panel-kicker">
+                  S{item.season} · {item.kind === 'episode'
+                    ? `Episode ${String(item.episodeNumber).padStart(2, '0')}`
+                    : item.title} · No archived copy
+                </div>
+                <h2 className="yt-panel-title">
+                  {[...item.guests, ...item.panelists].slice(0, 3).join(', ')}
+                </h2>
+                <p className="yt-panel-copy">
+                  This episode is available on the official Samay Raina YouTube channel.
+                  The archive does not stream, re-host or proxy YouTube video.
+                </p>
+                {item.officialUrl && (
+                  <div className="yt-panel-actions">
+                    <a
+                      className="btn btn-solid"
+                      href={item.officialUrl.url}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                    >
+                      Watch on YouTube ↗
+                    </a>
+                    <span className="yt-panel-note">Official upload</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+        <div className="watch-head">
+          <span className="watch-no">
+            {item.kind === 'episode'
+              ? `Season 2 · Episode ${String(item.episodeNumber).padStart(2, '0')}`
+              : `Season 2 · ${item.title}`}
+          </span>
+          <h1>India&rsquo;s Got Latent</h1>
+
+          <div className="watch-facts">
+            <span>
+              {item.releaseDate
+                ? new Date(item.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+                : 'Date unverified'}
+            </span>
             {playable ? (
               <>
-                <span className="chip">{formatRuntime(item.durationSeconds)}</span>
-                {item.resolution && <span className="chip">{item.resolution.label}</span>}
-                {formatBits.length > 0 && <span className="chip">{formatBits.join(' · ')}</span>}
+                {item.durationSeconds && <span><strong>{formatRuntime(item.durationSeconds)}</strong></span>}
+                {item.resolution && <span><strong>{item.resolution.label}</strong></span>}
+                {formatBits.length > 0 && <span>{formatBits.join(' · ')}</span>}
               </>
             ) : (
-              <span className="chip chip-muted">Not available</span>
+              <span>Unavailable</span>
             )}
           </div>
 
@@ -135,65 +161,71 @@ export default function WatchView({ item, prevNext, related }: Props) {
               {ROLES.filter((r) => item[r.key].length > 0).map((r) => (
                 <div className="watch-people-row" key={r.key}>
                   <span className="watch-people-role">{r.label}</span>
-                  <span>{item[r.key].join(' · ')}</span>
+                  <span className="watch-people-names">{item[r.key].join(' · ')}</span>
                 </div>
               ))}
             </div>
           )}
 
           {origin && (
-            <div className="source-line">
-              <strong>Source.</strong> {origin}
-            </div>
+            <div className="source-line"><strong>Source</strong> — {origin}.</div>
           )}
-
-          {v?.note && (
-            <div className="source-note">
-              <strong>Source note.</strong> {v.note}
-            </div>
+          {'note' in (v ?? {}) && (v as { note?: string }).note && (
+            <div className="source-note"><strong>Note</strong> — {(v as { note: string }).note}</div>
           )}
 
           <div className="prevnext">
             {prevNext.prev ? (
               <Link href={`/watch/${prevNext.prev.slug}`}>
                 <span className="dir">← Previous</span>
-                <span className="t">
-                  S{prevNext.prev.season} ·{' '}
-                  {prevNext.prev.kind === 'episode' ? `Episode ${prevNext.prev.episodeNumber}` : prevNext.prev.title}
+                <span>
+                  {prevNext.prev.kind === 'episode'
+                    ? `Episode ${String(prevNext.prev.episodeNumber).padStart(2, '0')}`
+                    : prevNext.prev.title}
+                  {prevNext.prev.guests.length > 0 && ` — ${prevNext.prev.guests.slice(0, 2).join(', ')}`}
                 </span>
               </Link>
             ) : (
-              <span className="empty">
-                <span className="dir">← Previous</span>
-                <span className="t">Start of this collection</span>
-              </span>
+              <span className="empty"><span className="dir">← Previous</span><span>Start of the season</span></span>
             )}
             {prevNext.next ? (
               <Link href={`/watch/${prevNext.next.slug}`}>
                 <span className="dir">Next →</span>
-                <span className="t">
-                  S{prevNext.next.season} ·{' '}
-                  {prevNext.next.kind === 'episode' ? `Episode ${prevNext.next.episodeNumber}` : prevNext.next.title}
+                <span>
+                  {prevNext.next.kind === 'episode'
+                    ? `Episode ${String(prevNext.next.episodeNumber).padStart(2, '0')}`
+                    : prevNext.next.title}
+                  {prevNext.next.guests.length > 0 && ` — ${prevNext.next.guests.slice(0, 2).join(', ')}`}
                 </span>
               </Link>
             ) : (
-              <span className="empty">
-                <span className="dir">Next →</span>
-                <span className="t">End of this collection</span>
-              </span>
+              <span className="empty"><span className="dir">Next →</span><span>End of the season</span></span>
             )}
           </div>
         </div>
       </div>
 
       <aside className="watch-side">
-        <section className="section" style={{ marginTop: 8 }} aria-label="Related episodes">
-          <div className="section-head">
-            <h2>More from the vault</h2>
-          </div>
-          <div className="card-grid">
+        <section aria-label="More from Season 2">
+          <h2 className="watch-side-title">More from Season 2</h2>
+          <div>
             {related.map((r) => (
-              <EpisodeCard key={r.id} item={r} />
+              <Link key={r.id} href={`/watch/${r.slug}`} className="archive-row" style={{ gridTemplateColumns: '112px minmax(0, 1fr)', padding: '14px 0', display: 'grid', gap: '14px', alignItems: 'center', borderBottom: '1px solid var(--rule)' }}>
+                <span className="archive-thumb" style={{ display: 'block' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={r.thumbnail} alt="" width="320" height="180" loading="lazy" decoding="async" />
+                </span>
+                <span>
+                  <span className="search-hit-no">
+                    {r.kind === 'episode'
+                      ? `E${String(r.episodeNumber).padStart(2, '0')}`
+                      : r.title}
+                  </span>
+                  <span style={{ display: 'block', marginTop: '4px', fontSize: 'var(--t-small)', color: 'var(--paper-dim)' }}>
+                    {r.guests.slice(0, 2).join(', ')}
+                  </span>
+                </span>
+              </Link>
             ))}
           </div>
         </section>

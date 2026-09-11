@@ -10,8 +10,8 @@
  * and ./yuhu, coordinated by the priority resolver in ./resolve.
  */
 
-/** Which of the two authorised sources a reference points at. */
-export type SourceOrigin = 'index' | 'yuhu';
+/** Which authorised source a reference points at. */
+export type SourceOrigin = 'index' | 'yuhu' | 'youtube';
 
 /**
  * Stable reference to one file on index.csbots.live.
@@ -32,6 +32,17 @@ export interface IndexFileRef {
   searchHint: string;
   /** Optional operator note (e.g. why this variant is primary). */
   note?: string;
+}
+
+/**
+ * Stable reference to a YouTube video.
+ * Used for episodes where the archive embeds the official YouTube upload
+ * rather than streaming from an indexed source copy.
+ */
+export interface YouTubeFileRef {
+  origin: 'youtube';
+  /** YouTube video ID (11 characters). */
+  videoId: string;
 }
 
 /**

@@ -5,9 +5,9 @@ import { useMemo, useState } from 'react';
 import type { ContentItem } from '@/catalog/types';
 import { isPlayable } from '@/catalog/types';
 import { searchCatalog } from '@/catalog/search';
-import { formatRuntime, seasonEpisodeLabel } from '@/lib/format';
+import { formatRuntime } from '@/lib/format';
 
-const HINTS = ['S2E6', 'Bonus Episode 1', 'Badshah', 'Rakhi Sawant', 'Alia Bhatt', 'Season 2'];
+const HINTS = ['S2E6', 'Rakhi Sawant', 'Tanmay Bhat', 'Bonus', 'Orry'];
 
 export default function SearchExperience({
   items,
@@ -41,7 +41,7 @@ export default function SearchExperience({
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Try “S2E5”, a guest name, or “Bonus Episode 1”…"
+          placeholder="Guest, episode, title&hellip;"
           autoComplete="off"
           autoFocus
         />
@@ -58,8 +58,8 @@ export default function SearchExperience({
       {showResults && (
         <p className="search-count" role="status">
           {results.length === 0
-            ? `No results for “${q.trim()}”`
-            : `${results.length} result${results.length === 1 ? '' : 's'} for “${q.trim()}”`}
+            ? 'No matches'
+            : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
         </p>
       )}
 
@@ -67,34 +67,35 @@ export default function SearchExperience({
         <div className="search-results">
           {results.map(({ item, matchedOn }) => (
             <Link key={item.id} href={`/watch/${item.slug}`} className="search-hit">
-              {/* eslint-disable-next-line @next/next/no-img-element -- local SVG key art */}
               <span className="search-hit-art">
-                {/* eslint-disable-next-line @next/next/no-img-element -- real archive frame */}
-                <img src={item.thumbnail} alt="" width="640" height="360" loading="lazy" decoding="async" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.thumbnail} alt="" width="320" height="180" loading="lazy" decoding="async" />
               </span>
               <span className="search-hit-body">
-                <span className="chip chip-gold">
-                  {seasonEpisodeLabel(item.season, item.episodeNumber, item.kind)}
+                <span className="search-hit-no">
+                  S{item.season} · {item.kind === 'episode'
+                    ? `E${String(item.episodeNumber).padStart(2, '0')}`
+                    : item.title}
                 </span>
-                <h3>{item.kind === 'episode' ? `Episode ${item.episodeNumber}` : item.title}</h3>
-                <span style={{ fontSize: 13.5, color: 'var(--muted)' }}>
-                  {isPlayable(item) ? (
-                    <>
-                      {formatRuntime(item.durationSeconds)}
-                      {item.resolution ? ` · ${item.resolution.label}` : ''}
-                    </>
-                  ) : (
-                    'Not currently available'
-                  )}
-                  {item.guests.length > 0 ? ` · with ${item.guests.slice(0, 3).join(', ')}` : ''}
+                <h3>
+                  {item.guests.length > 0
+                    ? item.guests.slice(0, 3).join(', ')
+                    : item.title}
+                </h3>
+                <span className="search-hit-meta">
+                  {isPlayable(item)
+                    ? [item.durationSeconds ? formatRuntime(item.durationSeconds) : null,
+                       item.resolution?.label].filter(Boolean).join(' · ')
+                    : 'Unavailable'}
                 </span>
-                <span className="search-hit-why">
-                  {matchedOn.map((m) => (
-                    <span className="chip" key={m}>
-                      {m}
-                    </span>
-                  ))}
-                </span>
+                {matchedOn.length > 0 && (
+                  <span className="search-hit-why">
+                    {matchedOn.map((m) => <span key={m}>{m}</span>)}
+                  </span>
+                )}
+              </span>
+              <span className="archive-cta hit-cta">
+                {isPlayable(item) ? 'Watch' : 'View'} <span className="arr" aria-hidden="true">→</span>
               </span>
             </Link>
           ))}
@@ -103,20 +104,14 @@ export default function SearchExperience({
 
       {showResults && results.length === 0 && (
         <div className="search-empty">
-          {/* eslint-disable-next-line @next/next/no-img-element -- static local SVG brand mark */}
-          <img src="/brand/mark.svg" alt="" width="56" height="56" />
-          <h2>Nothing in the vault matches that</h2>
+          <h2>Nothing in the vault matches that.</h2>
           <p>
-            The archive only holds verified Season 2 episodes of India’s Got Latent. Check
-            the spelling, try an episode number like “S2E6”, or browse a season instead.
+            The archive covers Season 2 of India&rsquo;s Got Latent — try a guest name,
+            an episode number like &ldquo;S2E5&rdquo;, or browse the season directly.
           </p>
           <div className="tips">
-            <Link href="/season/2" className="btn btn-outline">
-              Browse Season 2
-            </Link>
-            <Link href="/bonus" className="btn btn-outline">
-              Browse Bonus
-            </Link>
+            <Link href="/season/2" className="more">Browse Season 2 →</Link>
+            <Link href="/bonus" className="more">Browse Bonus →</Link>
           </div>
         </div>
       )}

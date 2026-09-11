@@ -32,7 +32,7 @@ describe('query parsing', () => {
 });
 
 describe('catalogue search (season 2 only)', () => {
-  it('finds episode numbers first, including unavailable identities', () => {
+  it('finds episode numbers first', () => {
     expect(ids('S2E6')[0]).toBe('s2e6');
     expect(ids('S02E06')[0]).toBe('s2e6');
     expect(ids('Episode 6')[0]).toBe('s2e6');
@@ -73,7 +73,7 @@ describe('catalogue search (season 2 only)', () => {
     expect(ids('Haarsh Limbachiyaa')[0]).toBe('s2b2');
   });
 
-  it('finds guests of unavailable episodes too', () => {
+  it('finds guests of all episodes', () => {
     expect(ids('Alia Bhatt')[0]).toBe('s2e1');
     expect(ids('Sharvari')[0]).toBe('s2e1');
     expect(ids('Kiku Sharda')[0]).toBe('s2e2');

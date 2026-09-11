@@ -1,4 +1,4 @@
-import type { IndexFileRef, YuhuFileRef } from '@/source/types';
+import type { IndexFileRef, YuhuFileRef, YouTubeFileRef } from '@/source/types';
 
 export type ContentKind = 'episode' | 'bonus' | 'special';
 
@@ -6,7 +6,7 @@ export type ContentKind = 'episode' | 'bonus' | 'special';
 export const PUBLIC_SEASON = 2;
 
 /** One playable file reference. Index refs always precede Yuhu refs. */
-export type MediaVariant = (IndexFileRef | YuhuFileRef) & {
+export type MediaVariant = (IndexFileRef | YuhuFileRef | YouTubeFileRef) & {
   videoCodec?: string;
   audioCodec?: string;
   width?: number;
@@ -91,6 +91,6 @@ export function isPlayable(item: ContentItem): boolean {
 }
 
 /** Which authorised source serves this item first (null = none). */
-export function primaryOrigin(item: ContentItem): 'index' | 'yuhu' | null {
+export function primaryOrigin(item: ContentItem): 'index' | 'yuhu' | 'youtube' | null {
   return item.source ? item.source.primary.origin : null;
 }

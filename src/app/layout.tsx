@@ -10,7 +10,7 @@ import '@/styles/player.css';
 
 const serif = Fraunces({
   subsets: ['latin'],
-  weight: ['600'],
+  weight: ['300', '400', '600'],
   style: ['normal', 'italic'],
   display: 'swap',
   variable: '--font-serif',
@@ -18,10 +18,11 @@ const serif = Fraunces({
 
 const sans = Inter({
   subsets: ['latin'],
-  weight: ['400', '600', '700'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
   variable: '--font-sans',
 });
+
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

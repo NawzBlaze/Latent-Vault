@@ -19,7 +19,7 @@ export function formatRuntime(totalSeconds: number | null | undefined): string {
   }
   const s = Math.round(totalSeconds);
   const h = Math.floor(s / 3600);
-  const m = Math.round((s % 3600) / 60);
+  const m = Math.min(59, Math.round((s % 3600) / 60));
   if (h <= 0) return `${m} min`;
   return m === 0 ? `${h} hr` : `${h} hr ${m} min`;
 }

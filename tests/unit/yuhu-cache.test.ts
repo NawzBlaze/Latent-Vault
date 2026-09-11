@@ -233,11 +233,13 @@ describe('/api/play authorisation headers', () => {
     expect(body.byteLength).toBe(0); // zero bytes of video through Vercel
   });
 
-  it('leaves the publication gate untouched: unavailable stays 404', async () => {
+  it('leaves the publication gate untouched: E1 returns youtube source, unknown stays 404', async () => {
     mockRoute(cdnUrl(127.5));
-    const un = await GET(new Request('http://x/api/play/s2e1'), { params: { contentId: 's2e1' } });
-    expect(un.status).toBe(404);
-    expect(((await un.json()) as { error: string }).error).toBe('unavailable');
+    const yt = await GET(new Request('http://x/api/play/s2e1'), { params: { contentId: 's2e1' } });
+    expect(yt.status).toBe(200);
+    const ytBody = (await yt.json()) as { source: string; videoId: string };
+    expect(ytBody.source).toBe('youtube');
+    expect(ytBody.videoId).toBe('eHTXQW58WhA');
     const unknown = await GET(new Request('http://x/api/play/zz9'), { params: { contentId: 'zz9' } });
     expect(unknown.status).toBe(404);
   });

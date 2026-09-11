@@ -68,18 +68,22 @@ export function validateCatalogue(items: ContentItem[]): ValidationIssue[] {
 
     // Availability consistency: available ⟺ usable refs + probed media facts.
     const refs = item.source ? [item.source.primary, ...item.source.alternates] : [];
+    const isYoutube = refs.some((r) => r.origin === 'youtube');
     if (item.availability === 'available') {
       if (!item.source) {
         push('error', item.id, 'source', 'available items must carry source references');
       }
-      if (item.durationSeconds === null) {
-        push('error', item.id, 'durationSeconds', 'available items must have a probed duration');
-      }
-      if (!item.resolution) {
-        push('error', item.id, 'resolution', 'available items must have a probed resolution');
-      }
-      if (item.archivedAt === null) {
-        push('error', item.id, 'archivedAt', 'available items must record when the copy was archived');
+      // YouTube-sourced items don't need probed duration/resolution/archivedAt.
+      if (!isYoutube) {
+        if (item.durationSeconds === null) {
+          push('error', item.id, 'durationSeconds', 'available items must have a probed duration');
+        }
+        if (!item.resolution) {
+          push('error', item.id, 'resolution', 'available items must have a probed resolution');
+        }
+        if (item.archivedAt === null) {
+          push('error', item.id, 'archivedAt', 'available items must record when the copy was archived');
+        }
       }
     } else {
       // Unavailable = verified identity ONLY. No refs, no media facts.
@@ -112,6 +116,8 @@ export function validateCatalogue(items: ContentItem[]): ValidationIssue[] {
         if (!ref.mimeType?.startsWith('video/')) {
           push('error', item.id, `${where}.mimeType`, 'yuhu ref must be a video MIME type');
         }
+      } else if (ref.origin === 'youtube') {
+        if (!ref.videoId) push('error', item.id, `${where}.videoId`, 'missing youtube videoId');
       } else {
         push('error', item.id, where, 'unknown source origin');
       }
@@ -119,6 +125,12 @@ export function validateCatalogue(items: ContentItem[]): ValidationIssue[] {
 
     // Priority rule: index refs ALWAYS precede yuhu refs. A yuhu primary is
     // only legal when the item has no usable index media at all.
+    // YouTube refs are standalone — they never mix with index/yuhu.
+    const hasYoutube = refs.some((r) => r.origin === 'youtube');
+    const hasIndexOrYuhu = refs.some((r) => r.origin === 'index' || r.origin === 'yuhu');
+    if (hasYoutube && hasIndexOrYuhu) {
+      push('error', item.id, 'source', 'youtube refs must not mix with index or yuhu refs');
+    }
     const firstYuhu = refs.findIndex((r) => r.origin === 'yuhu');
     const lastIndex = refs.map((r) => r.origin).lastIndexOf('index');
     if (firstYuhu !== -1 && lastIndex !== -1 && firstYuhu < lastIndex) {
@@ -126,8 +138,9 @@ export function validateCatalogue(items: ContentItem[]): ValidationIssue[] {
     }
 
     // Resolution honesty: label must match probed pixels.
+    // Skip for YouTube-sourced items (no local media to probe).
     const r = item.resolution;
-    if (r) {
+    if (r && !isYoutube) {
       const expected = RES_LABELS[r.label];
       if (!expected) {
         push('warning', item.id, 'resolution.label', `unusual label ${r.label}`);
