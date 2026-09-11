@@ -45,7 +45,9 @@ export default function SeasonPage({ params }: Props) {
     <div className="wrap">
       <div className="page-head">
         <span className="label">India&rsquo;s Got Latent</span>
-        <h1>Season {n}</h1>
+        <h1>
+          Season <span className="alt">{n === 2 ? 'Two' : n}</span>
+        </h1>
         <p>
           {items.length} episodes in broadcast order. Episodes without a usable media copy
           are listed and marked unavailable — identities stay verified, numbering stays intact.

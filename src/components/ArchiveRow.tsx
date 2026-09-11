@@ -7,7 +7,7 @@ import { isPlayable } from '@/catalog/types';
 import { formatRuntime } from '@/lib/format';
 
 /**
- * One archive row: E-number · thumbnail · people · facts · CTA.
+ * One archive row: outlined E-number · thumbnail · people · facts · CTA.
  */
 export function ArchiveRow({ item }: { item: ContentItem }) {
   const playable = isPlayable(item);
@@ -84,7 +84,10 @@ export function Feature({ item }: { item: ContentItem }) {
         />
       </span>
       <span className="feature-info">
-        <span className="feature-no">S2 · Episode {String(item.episodeNumber).padStart(2, '0')}</span>
+        <span className="feature-no">
+          S2 · Episode {String(item.episodeNumber).padStart(2, '0')}
+          {playable ? '' : ' · Listed'}
+        </span>
         <span className="feature-title">
           {people.length > 0 ? people.join(' · ') : item.title}
         </span>

@@ -16,7 +16,9 @@ export default function SearchPage({ searchParams }: { searchParams: { q?: strin
     <div className="wrap">
       <div className="search-hero">
         <span className="label">The index</span>
-        <h1>Search the archive</h1>
+        <h1>
+          Search the <span className="alt">Archive</span>
+        </h1>
         <SearchExperience key={searchParams.q ?? ''} items={published} initialQuery={searchParams.q ?? ''} />
       </div>
     </div>

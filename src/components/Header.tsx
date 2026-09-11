@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NAV_LINKS } from '@/lib/site';
 
 function isActive(pathname: string, href: string): boolean {
@@ -16,16 +16,19 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [q, setQ] = useState('');
 
+  useEffect(() => {
+    document.body.classList.toggle('menu-open', menuOpen);
+    return () => document.body.classList.remove('menu-open');
+  }, [menuOpen]);
+
   return (
     <header className="masthead">
       <div className="wrap masthead-inner">
         <Link href="/" className="brand" aria-label="Latent Vault home">
-          {/* eslint-disable-next-line @next/next/no-img-element -- static local SVG brand mark */}
-          <img src="/brand/mark.svg" alt="" width="26" height="26" className="brand-mark" />
-          <span className="brand-word">
-            <span className="brand-name">Latent Vault</span>
-            <span className="brand-sub">India&rsquo;s Got Latent &middot; S2 Archive</span>
+          <span className="brand-name">
+            L<span className="alt">ATENT</span>&nbsp;V<span className="alt">AULT</span>
           </span>
+          <span className="brand-sub">India&rsquo;s Got Latent · S2 Archive</span>
         </Link>
 
         <nav className="nav-desktop" aria-label="Primary">
@@ -52,7 +55,7 @@ export default function Header() {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search"
+            placeholder="search…"
             autoComplete="off"
           />
         </form>
@@ -85,14 +88,15 @@ export default function Header() {
 
       <div className="wrap">
         <nav className={`nav-mobile${menuOpen ? ' open' : ''}`} aria-label="Mobile">
-          {NAV_LINKS.map((l) => (
+          {NAV_LINKS.map((l, i) => (
             <Link
               key={l.href}
               href={l.href}
               aria-current={isActive(pathname, l.href) ? 'page' : undefined}
               onClick={() => setMenuOpen(false)}
             >
-              {l.label}
+              <span className="idx">{String(i + 1).padStart(2, '0')}</span>
+              {l.label === 'Season 2' ? 'Episodes' : l.label}
             </Link>
           ))}
         </nav>

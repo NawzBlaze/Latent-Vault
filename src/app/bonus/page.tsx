@@ -20,7 +20,9 @@ export default function BonusPage() {
     <div className="wrap">
       <div className="page-head">
         <span className="label">Beyond the season</span>
-        <h1>Bonus episodes</h1>
+        <h1>
+          Bonus <span className="alt">Reels</span>
+        </h1>
         <p>
           {items.length} bonus programmes from Season 2 — listed separately from the
           regular episode sequence.

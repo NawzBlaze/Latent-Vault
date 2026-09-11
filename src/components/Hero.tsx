@@ -19,29 +19,28 @@ export default function Hero({ item }: { item: ContentItem }) {
           fetchPriority="high"
           decoding="async"
         />
-        <figcaption>Season 2 Episode {item.episodeNumber}</figcaption>
+        <figcaption>S2 · E{String(item.episodeNumber).padStart(2, '0')}</figcaption>
       </figure>
 
       <div className="hero-copy">
         <div className="wrap hero-copy-inner">
-          <div>
-            <div className="hero-kicker">
-              <span className="label">
-                India&rsquo;s Got Latent &middot; <em>Season 2</em>
-              </span>
-              <span className="hero-rule" aria-hidden="true" />
-              <span className="label">Latest</span>
-            </div>
-            <h1 className="hero-title">
-              Episode {item.episodeNumber}
-              {people.length > 0 && (
-                <span className="hero-people">
-                  {people.slice(0, 3).join(', ')}
-                  {people.length > 3 ? ` and ${people.length - 3} more` : ''}
-                </span>
-              )}
-            </h1>
+          <div className="hero-kicker">
+            <span className="label">
+              India&rsquo;s Got Latent — <em>Season 2</em>
+            </span>
+            <span className="hero-rule" aria-hidden="true" />
+            <span className="label">Latest</span>
           </div>
+
+          <h1 className="hero-title">
+            <span className="no">Episode {String(item.episodeNumber).padStart(2, '0')}</span>
+            {people.length > 0 ? people.slice(0, 3).join(', ') : item.title}
+            {people.length > 3 && (
+              <span className="hero-people">
+                and {people.length - 3} more
+              </span>
+            )}
+          </h1>
 
           <div className="hero-side">
             <div className="hero-meta">
@@ -56,6 +55,7 @@ export default function Hero({ item }: { item: ContentItem }) {
               {playable && item.resolution && (
                 <span><strong>{item.resolution.label}</strong></span>
               )}
+              {item.source?.primary.origin === 'youtube' && <span>YouTube</span>}
             </div>
             <div className="hero-actions">
               <Link href={`/watch/${item.slug}`} className="btn btn-solid">
@@ -64,7 +64,7 @@ export default function Hero({ item }: { item: ContentItem }) {
                   <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
                 </svg>
               </Link>
-              <Link href="/season/2" className="btn btn-quiet">
+              <Link href="/season/2" className="btn btn-ghost">
                 Browse Season 2
               </Link>
             </div>

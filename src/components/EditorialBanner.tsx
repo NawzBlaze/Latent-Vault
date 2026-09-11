@@ -11,7 +11,7 @@ export default function EditorialBanner({ featuredItem }: { featuredItem?: Conte
     <section className="interlude" aria-label="About the archive">
       <div>
         <p className="interlude-quote">
-          Every episode verified against the record before it enters the vault.
+          Every episode <span className="accent">verified</span> against the record before it enters the vault.
         </p>
         <p className="interlude-note">
           The archive holds only Season 2 of India&rsquo;s Got Latent. Identities, release
@@ -32,7 +32,7 @@ export default function EditorialBanner({ featuredItem }: { featuredItem?: Conte
             decoding="async"
           />
         </figure>
-        <p className="interlude-caption">Frame from the archive &middot; Season 2</p>
+        <p className="interlude-caption">Frame from the archive · Season 2</p>
       </div>
     </section>
   );

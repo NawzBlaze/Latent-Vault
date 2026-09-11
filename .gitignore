@@ -27,3 +27,4 @@ playwright/.cache/
 Thumbs.db
 *.swp
 *.log
+.vercel

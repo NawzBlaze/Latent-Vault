@@ -5,19 +5,19 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="wrap">
+        <div className="footer-word" aria-hidden="true">
+          <span>
+            LATENT&nbsp;<em>VAULT</em>
+          </span>
+        </div>
+
         <div className="footer-inner">
           <div>
-            <div className="footer-brand">
-              {/* eslint-disable-next-line @next/next/no-img-element -- static local SVG brand mark */}
-              <img src="/brand/mark.svg" alt="" width="30" height="30" />
-              <div>
-                <div className="footer-name">Latent Vault</div>
-                <p className="footer-desc">
-                  An independent archive of India&rsquo;s Got Latent, Season 2. Episodes
-                  stream directly from the verified source to your device.
-                </p>
-              </div>
-            </div>
+            <div className="footer-name">Latent Vault</div>
+            <p className="footer-desc">
+              An independent archive of India&rsquo;s Got Latent, Season 2. Episodes
+              stream directly from the verified source to your device.
+            </p>
           </div>
           <div>
             <h4 className="label">Archive</h4>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Inter } from 'next/font/google';
+import { Fraunces, Inter, IBM_Plex_Mono } from 'next/font/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileTabBar from '@/components/MobileTabBar';
@@ -10,7 +10,7 @@ import '@/styles/player.css';
 
 const serif = Fraunces({
   subsets: ['latin'],
-  weight: ['300', '400', '600'],
+  weight: ['300', '400', '500', '600'],
   style: ['normal', 'italic'],
   display: 'swap',
   variable: '--font-serif',
@@ -18,9 +18,16 @@ const serif = Fraunces({
 
 const sans = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600'],
   display: 'swap',
   variable: '--font-sans',
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  display: 'swap',
+  variable: '--font-plex-mono',
 });
 
 
@@ -48,25 +55,31 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0d0b07',
+  themeColor: '#0a0908',
   width: 'device-width',
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <head>
         {/* Media goes straight from the browser to the source, so warm that
             connection early: DNS + TLS for the source origin would otherwise
             be paid inside the first-frame budget. */}
         <link rel="preconnect" href={SOURCE_ORIGIN} />
         <link rel="dns-prefetch" href={SOURCE_ORIGIN} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: 'document.documentElement.classList.add("js")',
+          }}
+        />
       </head>
       <body>
         <a className="skip-link" href="#main">
           Skip to content
         </a>
+        <div className="grain" aria-hidden="true" />
         <Header />
         <main id="main">{children}</main>
         <Footer />
