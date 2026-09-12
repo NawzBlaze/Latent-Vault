@@ -34,23 +34,32 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
-    template: `%s · ${SITE_NAME}`,
+    default: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    template: `%s - ${SITE_NAME}`,
   },
   description:
-    'Latent Vault is an independent streaming archive of India’s Got Latent. Browse seasons, search guests, and stream episodes directly.',
+    "Latent Vault is an independent streaming archive of India's Got Latent. Browse seasons, search guests, and stream episodes directly.",
   applicationName: SITE_NAME,
   robots: { index: true, follow: true },
   openGraph: {
     siteName: SITE_NAME,
     type: 'website',
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
-    description: 'An independent streaming archive of India’s Got Latent.',
+    title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    description: "An independent streaming archive of India's Got Latent.",
+    images: [
+      {
+        url: '/opengraph-image.png',
+        width: 1200,
+        height: 630,
+        alt: "Latent Vault - India's Got Latent Season 2 streaming archive",
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
-    description: 'An independent streaming archive of India’s Got Latent.',
+    title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    description: "An independent streaming archive of India's Got Latent.",
+    images: ['/opengraph-image.png'],
   },
 };
 
@@ -64,9 +73,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <head>
-        {/* Media goes straight from the browser to the source, so warm that
-            connection early: DNS + TLS for the source origin would otherwise
-            be paid inside the first-frame budget. */}
         <link rel="preconnect" href={SOURCE_ORIGIN} />
         <link rel="dns-prefetch" href={SOURCE_ORIGIN} />
         <script
